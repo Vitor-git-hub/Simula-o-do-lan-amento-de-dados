@@ -1,4 +1,4 @@
-const CACHE_NAME = 'platonic-dice-v4-relative-paths';
+const CACHE_NAME = 'platonic-dice-v5-bundled';
 const URLS_TO_CACHE = [
   './',
   './index.html',
