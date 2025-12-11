@@ -1,8 +1,8 @@
-const CACHE_NAME = 'platonic-dice-v3-force-refresh';
+const CACHE_NAME = 'platonic-dice-v4-relative-paths';
 const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
