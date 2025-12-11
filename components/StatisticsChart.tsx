@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import { SimulationResult } from '../types';
+import { SimulationResult } from '../types.ts';
 
 interface StatisticsChartProps {
   data: SimulationResult[];

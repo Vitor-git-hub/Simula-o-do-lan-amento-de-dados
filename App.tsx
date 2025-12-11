@@ -1,20 +1,51 @@
-import React, { useState, useCallback } from 'react';
-import { DieSelector } from './components/DieSelector';
-import { StatisticsChart } from './components/StatisticsChart';
-import { DieIcon } from './components/DieIcon';
-import { PLATONIC_DICE } from './constants';
-import { DieConfig, SimulationSummary, SimulationResult } from './types';
-import { Dices, RotateCcw, BarChart3, List } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { DieSelector } from './components/DieSelector.tsx';
+import { StatisticsChart } from './components/StatisticsChart.tsx';
+import { DieIcon } from './components/DieIcon.tsx';
+import { PLATONIC_DICE } from './constants.ts';
+import { DieConfig, SimulationSummary, SimulationResult } from './types.ts';
+import { Dices, RotateCcw, BarChart3, List, Download, CheckCircle2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [selectedDie, setSelectedDie] = useState<DieConfig>(PLATONIC_DICE[1]); // Default to Cube
   const [numRolls, setNumRolls] = useState<number>(100);
   const [simulationData, setSimulationData] = useState<SimulationSummary | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
+  
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isOfflineReady, setIsOfflineReady] = useState(false);
+
+  useEffect(() => {
+    // Listen for install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    });
+
+    // Check if SW is active (Offline ready)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(() => {
+        setIsOfflineReady(true);
+      });
+    }
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   const handleRoll = useCallback(() => {
     setIsSimulating(true);
-    setSimulationData(null); // Clear previous data to focus on animation
+    setSimulationData(null); 
     
     // Increased timeout to 1500ms to allow the animation to play
     setTimeout(() => {
@@ -53,7 +84,7 @@ const App: React.FC = () => {
   // Transform data for chart (convert frequency to percentage)
   const chartData = simulationData?.results.map(r => ({
     ...r,
-    frequency: parseFloat((r.frequency * 100).toFixed(2)) // Store as percentage number for chart
+    frequency: parseFloat((r.frequency * 100).toFixed(2)) 
   })) || [];
 
   const expectedProbability = 1 / selectedDie.sides;
@@ -71,6 +102,24 @@ const App: React.FC = () => {
               <h1 className="text-2xl font-bold tracking-tight">Simulador de Dados</h1>
               <p className="text-indigo-200 text-sm">Sólidos Platónicos</p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isInstallable && (
+              <button 
+                onClick={handleInstallClick}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 rounded-lg text-xs font-semibold transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Instalar App
+              </button>
+            )}
+            {isOfflineReady && !isInstallable && (
+               <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-800/50 rounded-lg text-xs font-medium text-indigo-200 border border-indigo-600">
+                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                 Offline Ready
+               </div>
+            )}
           </div>
         </div>
       </header>

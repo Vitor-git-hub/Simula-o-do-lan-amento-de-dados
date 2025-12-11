@@ -1,4 +1,4 @@
-import { DieConfig, DieType } from './types';
+import { DieConfig, DieType } from './types.ts';
 
 export const PLATONIC_DICE: DieConfig[] = [
   {

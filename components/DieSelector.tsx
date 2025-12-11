@@ -1,7 +1,7 @@
 import React from 'react';
-import { PLATONIC_DICE } from '../constants';
-import { DieConfig } from '../types';
-import { DieIcon } from './DieIcon';
+import { PLATONIC_DICE } from '../constants.ts';
+import { DieConfig } from '../types.ts';
+import { DieIcon } from './DieIcon.tsx';
 
 interface DieSelectorProps {
   selectedDie: DieConfig;

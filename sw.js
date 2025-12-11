@@ -1,4 +1,4 @@
-const CACHE_NAME = 'platonic-dice-v1';
+const CACHE_NAME = 'platonic-dice-v3-force-refresh';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -29,8 +29,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Strategy: Cache First for CDNs (Tailwind, ESM, Fonts)
-  // These libraries are versioned or static, so we can aggressively cache them.
+  // 1. Stale-while-revalidate strategy for the main app files
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+          return networkResponse;
+        });
+        return cachedResponse || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // 2. Cache First strategy for External Resources
   if (
     url.hostname.includes('esm.sh') || 
     url.hostname.includes('tailwindcss.com') || 
@@ -43,28 +58,20 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        return fetch(event.request).then((response) => {
-          // Check for valid response. Note: Opaque responses (type 'opaque') 
-          // are common with CDNs and no-cors mode, we cache them too.
+        
+        return fetch(event.request, { mode: 'cors', credentials: 'omit' }).then((response) => {
           if (!response || (response.status !== 200 && response.type !== 'opaque')) {
             return response;
           }
-
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
-
           return response;
+        }).catch(err => {
+          console.error('Fetch failed:', err);
         });
       })
     );
-    return;
   }
-
-  // Strategy: Network First for local app files (HTML, JS) to ensure updates are seen
-  event.respondWith(
-    fetch(event.request)
-      .catch(() => caches.match(event.request))
-  );
 });
