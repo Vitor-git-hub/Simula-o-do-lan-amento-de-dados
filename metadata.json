@@ -1,0 +1,5 @@
+{
+  "name": "Simulador de Dados Platónicos",
+  "description": "Uma simulação interativa de lançamentos de dados platónicos (Tetraedro, Cubo, Octaedro, Dodecaedro, Icosaedro) com visualização estatística de frequências relativas.",
+  "requestFramePermissions": []
+}
